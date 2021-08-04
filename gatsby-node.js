@@ -10,7 +10,7 @@ const getDigest = id =>
 
 exports.sourceNodes = async (
   { actions },
-  { types, credential, appConfig }
+  { types, credential }
 ) => {
   try {
     if (firebase.apps || !firebase.apps.length) {
@@ -29,16 +29,16 @@ exports.sourceNodes = async (
     timestampsInSnapshots: true,
   });
 
-  const { createNode } = actions;
+  const { createNode, createNodeField } = actions;
 
   const promises = types.map(
     async ({ collection, type, map = node => node }) => {
       const snapshot = await db.collection(collection).get();
       for (let doc of snapshot.docs) {
-        const contentDigest = getDigest(doc.id);
-        createNode(
+        const contentDigest = getDigest(`id_${doc.id}`);
+        const node = createNode(
           Object.assign({}, map(doc.data()), {
-            id: doc.id,
+            id: `id_${doc.id}`,
             parent: null,
             children: [],
             internal: {
