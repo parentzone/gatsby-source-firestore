@@ -8,13 +8,13 @@ const getDigest = id =>
     .digest('hex');
 
 exports.sourceNodes = async (
-  { boundActionCreators },
+  { actions },
   { types, credential }
 ) => {
   firebase.initializeApp({ credential: firebase.credential.cert(credential) });
   const db = firebase.firestore();
 
-  const { createNode, createNodeField } = boundActionCreators;
+  const { createNode, createNodeField } = actions;
 
   const promises = types.map(
     async ({ collection, type, populate, map = node => node }) => {
