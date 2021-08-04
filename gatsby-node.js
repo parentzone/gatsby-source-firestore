@@ -9,7 +9,7 @@ const getDigest = id =>
     .digest('hex');
 
 exports.sourceNodes = async (
-  { boundActionCreators },
+  { actions },
   { types, credential, appConfig }
 ) => {
   try {
@@ -29,7 +29,7 @@ exports.sourceNodes = async (
     timestampsInSnapshots: true,
   });
 
-  const { createNode } = boundActionCreators;
+  const { createNode } = actions;
 
   const promises = types.map(
     async ({ collection, type, map = node => node }) => {
