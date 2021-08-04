@@ -1,3 +1,4 @@
+const report = require('gatsby-cli/lib/reporter');
 const firebase = require('firebase-admin');
 const crypto = require('crypto');
 
@@ -11,13 +12,27 @@ exports.sourceNodes = async (
   { actions },
   { types, credential }
 ) => {
-  firebase.initializeApp({ credential: firebase.credential.cert(credential) });
+  try {
+    if (firebase.apps || !firebase.apps.length) {
+      const cfg = appConfig ? appConfig : {credential: firebase.credential.cert(credential)}
+      firebase.initializeApp(cfg);
+    }
+  } catch (e) {
+    report.warn(
+      'Could not initialize Firebase. Please check `credential` property in gatsby-config.js'
+    );
+    report.warn(e);
+    return;
+  }
   const db = firebase.firestore();
+  db.settings({
+    timestampsInSnapshots: true,
+  });
 
   const { createNode, createNodeField } = actions;
 
   const promises = types.map(
-    async ({ collection, type, populate, map = node => node }) => {
+    async ({ collection, type, map = node => node }) => {
       const snapshot = await db.collection(collection).get();
       for (let doc of snapshot.docs) {
         const contentDigest = getDigest(`id_${doc.id}`);
@@ -32,13 +47,10 @@ exports.sourceNodes = async (
             },
           })
         );
-
         Promise.resolve();
       }
     }
   );
-
   await Promise.all(promises);
-
   return;
 };
